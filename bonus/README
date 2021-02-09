@@ -1,0 +1,48 @@
+This is a smart contract giving away free omega coins. Here it is how it works:
+
+1. A donor starts a compain by submiting a transaction providing certain amount
+of omega coins and call deposit(int endtime, int ucap, char * pubkey), specifying
+an end time, max amout a user may request, and the donor's public key.
+
+2. A user wishing to receive free omega coins may submit a transaction with
+call issue(long value, char * address), specifying the amount requested and
+the address the coins should be sent to. If the transaction is included in
+a block before the end time specified by the doner and the amount request
+does not exceed the max amount and the contract has sufficient balance for
+the request and transaction fee, the contract will grant the request by:
+   2.1 Insert an input representing the contract's balance
+   2.2 Insert an output with the requested amount pay to to the address
+   2.3 Insert an output with contract's balance after this transaction to the
+       contract itself
+
+3. At any time, the donor may close the compaingn by calling terminate(char * sig)
+with his signature on "contract address + contract balance", the contract will
+send the balance back to donor and clear contract data, making itself ready for
+the next donor.
+
+Below are some tech details.
+
+1. How a contract keep tract of its own balance?
+In Omega chain, we use UTXO account model, which means a contract's balance is
+affected by a payment made to it in a form of transaction output or spending by 
+it in a form of transaction input. When a contract's address appears in an output's
+script, it triggers a contract call. Contract knows the token in the output by
+calling the build-in function getCoin().
+
+A contract's unspent teansaction output may only be spent by the contract when the
+contract adds it to the transaction's input. The virtual machine will verify that
+the UTXO is added by the right contract. A contract's UTXO is, of course a contract
+call at an earlier time and contract knows it by calling the build-in fuction
+getOutpoint() which returns the outpoint that triggers the current contract execution.
+
+A contract may make payment to itself by calling the build-in fuction addTxout. This
+function takes a serialized transaction output and returns output index of the inserted
+output.
+
+addTxout can not be used to make payment to another contract. To do so, a contract need
+to use the target contract's execute() function which is built into every contract.
+
+2. Transaction's hash value.
+In omega chain, we use transaction's pre-execution hash value to identify a transaction.
+Thus, modifying transaction by contract does not affect transaction's identification.
+
