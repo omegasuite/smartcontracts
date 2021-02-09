@@ -20,6 +20,12 @@ with his signature on "contract address + contract balance", the contract will
 send the balance back to donor and clear contract data, making itself ready for
 the next donor.
 
+4. Any one may call the contract's total(), allowed(), closetime(), donator(),
+lasttx(), users() to view the contract's states. User should use RPC's contractcall
+interface to make the call instead of submitting a transaction. Contractcall interface
+is free while a transaction will require fees. Contractcall interface generated a
+result while a transaction does not generate a result, it only gets recorded.
+
 Below are some tech details.
 
 1. How a contract keep tract of its own balance?
